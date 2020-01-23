@@ -1,8 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.layers.core import Dense
 
-assert tf.__version__ == '1.4.0'
-
 
 def grap_inputs():
     '''
@@ -31,25 +29,8 @@ def grap_inputs():
     return inputs, targets, keep_probs, encoder_seq_len, decoder_seq_len, max_seq_len
 
 
-def encoder(inputs, rnn_size, number_of_layers, encoder_seq_len, keep_probs, encoder_embed_size, encoder_vocab_size):
-
-	'''
-		Used to define encoder of the seq2seq model (The encoder is made of simple dynamic RNN network).
-
-		Inputs:
-			inputs -
-			rnn_siz - number of units in the RNN layer
-			number_of_layer - number of RNN layers that the model uses
-			encoder_seq_len - vector of lengths (got from placeholder)
-			keep_probs - dropout rate
-			encoder_embed_size - size of embedding vector for encoder part
-			encoder_vocab_size - number of different words that the model uses in a vocabulary
-		
-		Outputs:
-			encoder_outputs -
-			encoder_states - internal states from the RNN layer(s)
-
-	'''
+def encoder(inputs, rnn_size, number_of_layers, encoder_seq_len, keep_probs, 
+            encoder_embed_size, encoder_vocab_size):
     
     def cell(units, rate):
         layer = tf.contrib.rnn.BasicLSTMCell(units)
@@ -68,45 +49,12 @@ def encoder(inputs, rnn_size, number_of_layers, encoder_seq_len, keep_probs, enc
 
 
 def decoder_inputs_preprocessing(targets, word_to_id, batch_size):
-	'''
-		Helper function used to prepare decoder inputs
-
-		Inputs:
-			targets -
-			word_to_id - dictionery that the model uses to map each word to it's int representation
-			batch_size - number of samples that we put through the model at onces
-
-		Outputs:
-			preprocessed version of decoder inputs
-
-	'''
     endings = tf.strided_slice(targets, [0, 0], [batch_size, -1], [1, 1]) #This line is used to REMOVE last member of each sample in the decoder_inputs batch
     return tf.concat([tf.fill([batch_size, 1], word_to_id['<GO>']), endings], 1) #returning line and in this line we concat '<GO>' tag at the beginning of each sample in the batch
 
 
 def decoder(decoder_inputs, enc_states, dec_cell, decoder_embed_size, vocab_size,
             dec_seq_len, max_seq_len, word_to_id, batch_size):
-
-	'''
-		
-		The decoder core function.
-
-		Inputs:
-			decoder_inputs -
-			enc_states - states created by the encoder part of the seq2seq network
-			dec_cell - RNN cell used in the decoder RNN (can be attention cell as well)
-			decoder_embed_size - vector size of the decoder embedding layer
-			vocab_size - number of different words used in the decoder part
-			dec_seq_len - vector of lengths for the decoder, obtained from the placeholder
-			max_seq_len - sample with max number of words (got from placeholder)
-			word_to_id - python dict used to encode each word to it's int representation
-			batch_size - number of samples that we put through the model at onces
-
-		Outputs:
-			train_dec_outputs -
-			inference_dec_output - Inportant for testing and production use!
-		
-	'''
     
     #Defining embedding layer for the Decoder
     embed_layer = tf.Variable(tf.random_uniform([vocab_size, decoder_embed_size]))

@@ -4,6 +4,7 @@ import numpy as np
 import time
 import config
 from collections import Counter
+from tqdm import tqdm
 
 def get_conversations():
 	'''
@@ -105,12 +106,12 @@ def clean_data():
 	cleaned_questions = []
 	cleaned_answers = []
 
-	with open('movie_questions_2.txt', 'r') as f:
+	with open('movie_questions_2.txt', 'r', encoding='utf-8', errors='ignore') as f:
 		lines = f.readlines()
 		for line in lines:
 			cleaned_questions.append(cornell_tokenizer(line))
 
-	with open('movie_answers_2.txt', 'r') as f:
+	with open('movie_answers_2.txt', 'r', encoding='utf-8', errors='ignore') as f:
 		lines = f.readlines()
 		for line in lines:
 			cleaned_answers.append(cornell_tokenizer(line))
@@ -207,7 +208,7 @@ def bucket_data(questions, answers, word_to_id):
 		data_for_bucket = []
 		encoder_max = bucket[0]
 		decoder_max = bucket[1]
-		for i in range(len(questions)):
+		for i in tqdm(range(len(questions))):
 			if len(questions[i]) <= encoder_max and len(answers[i]) <= decoder_max:
 				if i not in already_added:
 					data_for_bucket.append((pad_data(questions[i], word_to_id, encoder_max), pad_data(answers[i], word_to_id, decoder_max, True)))
